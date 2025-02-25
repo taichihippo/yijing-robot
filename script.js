@@ -104,7 +104,49 @@ function generateGua() {
   const question = document.getElementById("question").value || "未输入具体问题";
   let benYao = []; // 本卦六爻
   let bianYao = []; // 变卦六爻
-  let movingYao = -1; // 动爻位置
+  let movingYao = []; // 记录所有动爻位置（允许多个动爻）
+
+  // 生成六爻
+  for (let i = 0; i < 6; i++) {
+    const yao = generateYao();
+    benYao.push(yao);
+    const changed = yaoChange(yao);
+    bianYao.push(changed);
+    if (yao === "老阴" || yao === "老阳") movingYao.push(i); // 记录所有动爻
+  }
+
+  // 计算本卦和变卦
+  const benCode = benYao.map(yaoToBinary).join("");
+  const bianCode = bianYao.join("");
+  console.log("本卦编码:", benCode, "变卦编码:", bianCode); // 调试：检查编码
+  const benGua = guaData[benCode] ? guaData[benCode].name : "未知卦";
+  const bianGua = guaData[bianCode] ? guaData[bianCode].name : "未知卦"; // 移除 bianGuaMap，直接用 guaData
+
+  // 显示卦象
+  const guaHtml = `
+    <div class="gua-box">
+      <h3>本卦：${benGua}</h3>
+      <div class="gua-lines">${renderLines(benYao)}</div>
+    </div>
+    <div class="gua-box">
+      <h3>变卦：${bianGua}</h3>
+      <div class="gua-lines">${renderLines(bianYao)}</div>
+    </div>
+  `;
+  document.getElementById("guaDisplay").innerHTML = guaHtml;
+
+  // 生成解读
+  const benDesc = guaData[benCode] ? guaData[benCode].description : "当前状态不明，需重新起卦。";
+  const bianDesc = guaData[bianCode] ? guaData[bianCode].description : "发展趋势不明，需关注变化。";
+  let interpretation = `<strong>你的问题：</strong>${question}<br>`;
+  interpretation += `<strong>本卦（当前状态）：</strong>${benGua} - ${benDesc}<br>`;
+  interpretation += `<strong>变卦（发展趋势）：</strong>${bianGua} - ${bianDesc}<br>`;
+  interpretation += `<strong>建议：</strong>当前${benDesc.split("。")[0]}，未来可能${bianDesc.split("。")[0]}。结合你的问题，建议保持灵活，关注变化中的机会或挑战。`;
+  if (movingYao.length > 0) {
+    interpretation += `<br><strong>动爻提示：</strong>第${movingYao.map(i => i + 1).join("、")}爻变化，象征局势的关键转折点，请特别留意。`;
+  }
+  document.getElementById("interpretation").innerHTML = interpretation;
+}
 
   // 生成六爻
   for (let i = 0; i < 6; i++) {
