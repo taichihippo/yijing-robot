@@ -1,7 +1,7 @@
 // 调试：确认脚本加载
 console.log("Script loaded successfully!");
 
-// 完整64卦数据（只列部分，完整版用你的原数据）
+// 完整64卦数据
 const guaData = {
   "111111": { name: "乾卦", meaning: "刚健有力，宜果断行动。", description: "现在是采取主动的时机，果断决策会有回报。" },
   "000000": { name: "坤卦", meaning: "柔顺待时，宜耐心积累。", description: "当前宜低调努力，等待合适时机。" },
