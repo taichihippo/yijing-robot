@@ -1,7 +1,7 @@
 // 调试：确认脚本加载
 console.log("Script loaded successfully!");
 
-// 完整64卦数据
+// 完整64卦数据（只列部分，完整版用你的原数据）
 const guaData = {
   "111111": { name: "乾卦", meaning: "刚健有力，宜果断行动。", description: "现在是采取主动的时机，果断决策会有回报。" },
   "000000": { name: "坤卦", meaning: "柔顺待时，宜耐心积累。", description: "当前宜低调努力，等待合适时机。" },
@@ -71,28 +71,39 @@ const guaData = {
 // 生成六爻（模拟投掷）
 function generateYao() {
   const toss = Math.random();
-  return toss < 0.25 ? "老阴" : toss < 0.5 ? "少阴" : toss < 0.75 ? "少阳" : "老阳";
+  const result = toss < 0.25 ? "老阴" : toss < 0.5 ? "少阴" : toss < 0.75 ? "少阳" : "老阳";
+  console.log("Generated yao:", result, "with toss:", toss);
+  return result;
 }
 
 // 将爻转换为二进制（0阴，1阳）
 function yaoToBinary(yao) {
-  return (yao === "少阳" || yao === "老阳") ? 1 : 0;
+  const binary = (yao === "少阳" || yao === "老阳") ? 1 : 0;
+  console.log("Converting", yao, "to binary:", binary);
+  return binary;
 }
 
 // 爻变后结果（返回显示用的爻状态）
 function yaoChange(yao) {
-  if (yao === "老阴") return "少阳"; // 老阴变阳
-  if (yao === "老阳") return "少阴"; // 老阳变阴
-  return yao; // 少阴、少阳不变
+  if (yao === "老阴") {
+    console.log("Changing 老阴 to 少阳");
+    return "少阳";
+  }
+  if (yao === "老阳") {
+    console.log("Changing 老阳 to 少阴");
+    return "少阴";
+  }
+  console.log("No change for", yao);
+  return yao;
 }
 
 // 生成卦象
 function generateGua() {
   console.log("Button clicked!");
   const question = document.getElementById("question").value || "未输入具体问题";
-  let benYao = []; // 本卦六爻（显示用）
-  let bianYao = []; // 变卦六爻（显示用）
-  let movingYao = []; // 动爻位置
+  let benYao = [];
+  let bianYao = [];
+  let movingYao = [];
 
   // 生成六爻
   for (let i = 0; i < 6; i++) {
@@ -100,18 +111,20 @@ function generateGua() {
     benYao.push(yao);
     const changed = yaoChange(yao);
     bianYao.push(changed);
-    if (yao === "老阴" || yao === "老阳") movingYao.push(i); // 记录所有动爻
+    if (yao === "老阴" || yao === "老阳") movingYao.push(i);
   }
 
-  // 计算本卦和变卦的二进制编码
-  const benCode = benYao.map(yaoToBinary).join("");
-  const bianCode = bianYao.map(yaoToBinary).join("");
+  // 计算编码
+  const benCode = benYao.map(yao => yaoToBinary(yao)).join("");
+  const bianCode = bianYao.map(yao => yaoToBinary(yao)).join("");
   console.log("本卦爻:", benYao, "编码:", benCode);
   console.log("变卦爻:", bianYao, "编码:", bianCode);
+  console.log("动爻位置:", movingYao);
 
   // 获取卦名
   const benGua = guaData[benCode] ? guaData[benCode].name : "未知卦";
   const bianGua = guaData[bianCode] ? guaData[bianCode].name : "未知卦";
+  console.log("本卦名:", benGua, "变卦名:", bianGua);
 
   // 显示卦象
   const guaHtml = `
@@ -124,6 +137,7 @@ function generateGua() {
       <div class="gua-lines">${renderLines(bianYao)}</div>
     </div>
   `;
+  console.log("Rendering HTML:", guaHtml);
   document.getElementById("guaDisplay").innerHTML = guaHtml;
 
   // 生成解读
@@ -141,8 +155,10 @@ function generateGua() {
 
 // 渲染六爻图形
 function renderLines(yaoArray) {
-  return yaoArray.map(yao => {
-    if (yao === "少阳" || yao === "老阳") return "<span>——</span>";
-    return "<span>— —</span>";
+  const lines = yaoArray.map(yao => {
+    const line = (yao === "少阳" || yao === "老阳") ? "<span>——</span>" : "<span>— —</span>";
+    console.log("Rendering line for", yao, ":", line);
+    return line;
   }).reverse().join("");
+  return lines;
 }
