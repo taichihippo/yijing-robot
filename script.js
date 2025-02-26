@@ -97,6 +97,9 @@ function yaoChange(yao) {
   return yao;
 }
 
+// 存储当前卦名（用于AI提问）
+let currentGua = null;
+
 // 生成卦象
 function generateGua() {
   console.log("Button clicked!");
@@ -125,6 +128,9 @@ function generateGua() {
   const benGua = guaData[benCode] ? guaData[benCode].name : "未知卦";
   const bianGua = guaData[bianCode] ? guaData[bianCode].name : "未知卦";
   console.log("本卦名:", benGua, "变卦名:", bianGua);
+
+  // 存储当前卦名（本卦）
+  currentGua = benGua;
 
   // 显示卦象
   const guaHtml = `
@@ -161,4 +167,26 @@ function renderLines(yaoArray) {
     return line;
   }).reverse().join("");
   return lines;
+}
+
+// 问AI函数
+async function askQuestion() {
+  const question = document.getElementById("userInput").value;
+  if (!question) {
+    alert("请输入问题！");
+    return;
+  }
+  // 结合当前卦名生成问题
+  const finalQuestion = currentGua ? `${question}（当前卦为${currentGua}）` : question;
+  try {
+    const response = await fetch("/.netlify/functions/huggingface", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question: finalQuestion }),
+    });
+    const data = await response.json();
+    document.getElementById("answer").innerText = data.answer;
+  } catch (error) {
+    document.getElementById("answer").innerText = "发生错误，请稍后重试：" + error.message;
+  }
 }
