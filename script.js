@@ -1,7 +1,7 @@
 // 调试：确认脚本加载
 console.log("Script loaded successfully!");
 
-// 完整64卦数据（只列部分，完整版用你的原数据）
+// 完整64卦数据
 const guaData = {
   "111111": { name: "乾卦", meaning: "刚健有力，宜果断行动。", description: "现在是采取主动的时机，果断决策会有回报。" },
   "000000": { name: "坤卦", meaning: "柔顺待时，宜耐心积累。", description: "当前宜低调努力，等待合适时机。" },
@@ -86,14 +86,14 @@ function yaoToBinary(yao) {
 // 爻变后结果（返回显示用的爻状态）
 function yaoChange(yao) {
   if (yao === "老阴") {
-    console。log("Changing 老阴 to 少阳");
+    console.log("Changing 老阴 to 少阳");
     return "少阳";
   }
   if (yao === "老阳") {
-    console。log("Changing 老阳 to 少阴");
+    console.log("Changing 老阳 to 少阴");
     return "少阴";
   }
-  console。log("No change for"， yao);
+  console.log("No change for", yao);
   return yao;
 }
 
@@ -102,8 +102,8 @@ let currentGua = null;
 
 // 生成卦象
 function generateGua() {
-  console。log("Button clicked!");
-  const question = document。getElementById("question")。value || "未输入具体问题";
+  console.log("Button clicked!");
+  const question = document.getElementById("question").value || "未输入具体问题";
   let benYao = [];
   let bianYao = [];
   let movingYao = [];
@@ -111,23 +111,23 @@ function generateGua() {
   // 生成六爻
   for (let i = 0; i < 6; i++) {
     const yao = generateYao();
-    benYao。push(yao);
+    benYao.push(yao);
     const changed = yaoChange(yao);
-    bianYao。push(changed);
-    if (yao === "老阴" || yao === "老阳") movingYao。push(i);
+    bianYao.push(changed);
+    if (yao === "老阴" || yao === "老阳") movingYao.push(i);
   }
 
   // 计算编码
-  const benCode = benYao。map(yao => yaoToBinary(yao))。join("");
-  const bianCode = bianYao。map(yao => yaoToBinary(yao))。join("");
-  console。log("本卦爻:"， benYao， "编码:"， benCode);
-  console。log("变卦爻:"， bianYao， "编码:"， bianCode);
-  console。log("动爻位置:"， movingYao);
+  const benCode = benYao.map(yao => yaoToBinary(yao)).join("");
+  const bianCode = bianYao.map(yao => yaoToBinary(yao)).join("");
+  console.log("本卦爻:", benYao, "编码:", benCode);
+  console.log("变卦爻:", bianYao, "编码:", bianCode);
+  console.log("动爻位置:", movingYao);
 
   // 获取卦名
-  const benGua = guaData[benCode] ? guaData[benCode]。name : "未知卦";
-  const bianGua = guaData[bianCode] ? guaData[bianCode]。name : "未知卦";
-  console。log("本卦名:"， benGua， "变卦名:"， bianGua);
+  const benGua = guaData[benCode] ? guaData[benCode].name : "未知卦";
+  const bianGua = guaData[bianCode] ? guaData[bianCode].name : "未知卦";
+  console.log("本卦名:", benGua, "变卦名:", bianGua);
 
   // 存储当前卦名（本卦）
   currentGua = benGua;
@@ -135,4 +135,58 @@ function generateGua() {
   // 显示卦象
   const guaHtml = `
     <div class="gua-box">
-      <h3>本卦：${ben
+      <h3>本卦：${benGua}</h3>
+      <div class="gua-lines">${renderLines(benYao)}</div>
+    </div>
+    <div class="gua-box">
+      <h3>变卦：${bianGua}</h3>
+      <div class="gua-lines">${renderLines(bianYao)}</div>
+    </div>
+  `;
+  console。log("Rendering HTML:"， guaHtml);
+  document。getElementById("guaDisplay")。innerHTML = guaHtml;
+
+  // 生成解读
+  const benDesc = guaData[benCode] ? guaData[benCode]。description : "当前状态不明";
+  const bianDesc = guaData[bianCode] ? guaData[bianCode]。description : "发展趋势不明";
+  let interpretation = `<strong>你的问题：</strong>${question}<br>`;
+  interpretation += `<strong>本卦（当前状态）：</strong>${benGua} - ${benDesc}<br>`;
+  interpretation += `<strong>变卦（发展趋势）：</strong>${bianGua} - ${bianDesc}<br>`;
+  interpretation += `<strong>建议：</strong>当前${benDesc。split("。")[0]}，未来可能${bianDesc。split("。")[0]}。`;
+  if (movingYao。length > 0) {
+    interpretation += `<br><strong>动爻提示：</strong>第${movingYao。map(i => i + 1)。join("、")}爻变化。`;
+  }
+  document。getElementById("interpretation")。innerHTML = interpretation;
+}
+
+// 渲染六爻图形
+function renderLines(yaoArray) {
+  const lines = yaoArray。map(yao => {
+    const line = (yao === "少阳" || yao === "老阳") ? "<span>——</span>" : "<span>— —</span>";
+    console。log("Rendering line for"， yao， ":"， line);
+    return line;
+  })。reverse()。join("");
+  return lines;
+}
+
+// 问AI函数
+async function askQuestion() {
+  const question = document。getElementById("userInput")。value;
+  if (!question) {
+    alert("请输入问题！");
+    return;
+  }
+  // 结合当前卦名生成问题
+  const finalQuestion = currentGua ? `${question}（当前卦为${currentGua}）` : question;
+  try {
+    const response = await fetch("/.netlify/functions/huggingface"， {
+      method: "POST"，
+      headers: { "Content-Type": "application/json" }，
+      body: JSON。stringify({ question: finalQuestion })，
+    });
+    const data = await response。json();
+    document。getElementById("answer")。innerText = data。answer;
+  } catch (error) {
+    document。getElementById("answer")。innerText = "发生错误，请稍后重试：" + error。message;
+  }
+}
